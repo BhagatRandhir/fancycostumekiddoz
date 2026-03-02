@@ -414,6 +414,14 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
 .card-size-btn:hover{border-color:var(--green);color:var(--green)}
 .card-size-btn.selected{background:var(--green);color:#fff;border-color:var(--green)}
 .size-required-msg{font-family:var(--font-body);font-size:10px;color:#e55;font-weight:700;min-height:14px;margin-bottom:4px}
+
+/* ── CLOUDINARY UPLOAD ── */
+.upload-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.92);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10}
+.upload-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.upload-overlay p{font-family:var(--font-body);font-size:12px;font-weight:800;color:var(--green)}
+.upload-zone{position:relative}
+.img-cloud-badge{position:absolute;top:6px;right:6px;background:#25D366;color:#fff;font-family:var(--font-body);font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;display:none}
 </style>
 </head>
 <body>
@@ -769,7 +777,7 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
     <div class="form-group" style="text-align:left"><label>Username</label><input type="text" id="al-user" placeholder="admin"></div>
     <div class="form-group" style="text-align:left"><label>Password</label><input type="password" id="al-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn-primary" style="width:100%;justify-content:center;margin-top:6px" onclick="doAdminLogin()">Log In as Admin</button>
-    <!-- <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p> -->
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p>
     <div class="modal-switch"><a onclick="switchModal('admin-login-overlay','login-overlay')">← Back to User Login</a></div>
   </div>
 </div>
@@ -792,12 +800,12 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
     </div>
     <div class="form-group">
       <label>Costume Image</label>
-      <div class="upload-zone">
+      <div class="upload-zone" id="upload-zone-main">
         <input type="file" id="c-img" accept="image/*" onchange="previewImage(event)">
         <span class="up-icon">📤</span>
         <p>Drag & drop or <span>click to browse</span></p>
         <p style="margin-top:3px;font-size:10px;opacity:0.55">JPG, PNG, WEBP · Max 5MB</p>
-        <img id="img-preview" src="" alt="preview">
+        <img id="img-preview" src="" alt="preview"><span class="img-cloud-badge" id="img-cloud-badge">☁ Cloudinary</span>
       </div>
     </div>
     <div class="form-group">
@@ -1206,6 +1214,7 @@ function openAddModal(){
   document.getElementById('c-img').value='';
   var prev=document.getElementById('img-preview');prev.style.display='none';prev.src='';
   ['24','26','28','32'].forEach(function(s){document.getElementById('sz-'+s).checked=false;});
+  var badge=document.getElementById('img-cloud-badge');if(badge)badge.style.display='none';
   openModal('costume-modal');
 }
 function openEditModal(id){
@@ -1218,15 +1227,53 @@ function openEditModal(id){
   document.getElementById('c-avail').checked=c.available;
   var prev=document.getElementById('img-preview');
   if(c.image){prev.src=c.image;prev.style.display='block';}else{prev.style.display='none';prev.src='';}
+  var badge=document.getElementById('img-cloud-badge');
+  if(badge) badge.style.display=(c.image&&c.image.indexOf('cloudinary')>-1)?'block':'none';
   ['24','26','28','32'].forEach(function(s){document.getElementById('sz-'+s).checked=(c.sizes&&c.sizes.indexOf(s)>-1);});
   openModal('costume-modal');
 }
 function previewImage(e){
-  var file=e.target.files[0];if(!file)return;
-  if(file.size>5*1024*1024){showToast('File too large! Max 5MB.','error');return;}
-  var reader=new FileReader();
-  reader.onload=function(ev){currentImgData=ev.target.result;var prev=document.getElementById('img-preview');prev.src=currentImgData;prev.style.display='block';};
-  reader.readAsDataURL(file);
+  var file = e.target.files[0]; if(!file) return;
+  if(file.size > 5*1024*1024){ showToast('File too large! Max 5MB.','error'); return; }
+  uploadToCloudinary(file, 'upload-zone-main', function(url){
+    currentImgData = url;
+    var prev = document.getElementById('img-preview');
+    prev.src = url; prev.style.display = 'block';
+    var badge = document.getElementById('img-cloud-badge');
+    if(badge) badge.style.display = 'block';
+  });
+}
+
+function uploadToCloudinary(file, zoneId, onSuccess){
+  var zone = document.getElementById(zoneId);
+  // show spinner overlay
+  var overlay = document.createElement('div');
+  overlay.className = 'upload-overlay';
+  overlay.innerHTML = '<div class="upload-spinner"></div><p>Uploading...</p>';
+  if(zone) zone.appendChild(overlay);
+
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'faesfzdf');
+
+  fetch('https://api.cloudinary.com/v1_1/dfk3him1r/image/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(zone) zone.removeChild(overlay);
+    if(data.secure_url){
+      showToast('Image uploaded! ☁️', 'success');
+      onSuccess(data.secure_url);
+    } else {
+      showToast('Upload failed. Try again.', 'error');
+    }
+  })
+  .catch(function(){
+    if(zone) { try{ zone.removeChild(overlay); }catch(e){} }
+    showToast('Upload failed. Check internet.', 'error');
+  });
 }
 function saveCostume(){
   var name=document.getElementById('c-name').value.trim();
@@ -1308,16 +1355,26 @@ function handleBulkFiles(e){
   var loaded = 0;
   document.getElementById('bulk-progress-bar').style.width = '0%';
   valid.forEach(function(file, i){
-    var reader = new FileReader();
-    reader.onload = function(ev){
+    (function(file, i){
       var raw = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g,' ');
       var name = raw.charAt(0).toUpperCase() + raw.slice(1);
-      bulkFiles.push({ id: Date.now()+i, name: name, price: '', category: 'General', image: ev.target.result });
-      loaded++;
-      document.getElementById('bulk-progress-bar').style.width = Math.round((loaded/valid.length)*100)+'%';
-      if(loaded === valid.length) showBulkStep2();
-    };
-    reader.readAsDataURL(file);
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'faesfzdf');
+      fetch('https://api.cloudinary.com/v1_1/dfk3him1r/image/upload', { method:'POST', body:formData })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          bulkFiles.push({ id: Date.now()+i, name: name, price: '', category: 'General', image: data.secure_url||'' });
+          loaded++;
+          document.getElementById('bulk-progress-bar').style.width = Math.round((loaded/valid.length)*100)+'%';
+          if(loaded === valid.length) showBulkStep2();
+        })
+        .catch(function(){
+          loaded++;
+          bulkFiles.push({ id: Date.now()+i, name: name, price: '', category: 'General', image: '' });
+          if(loaded === valid.length) showBulkStep2();
+        });
+    })(file, i);
   });
 }
 
