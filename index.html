@@ -894,22 +894,7 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
       </div>
     </div>
     <p class="search-count" id="home-search-count"></p>
-    <div class="cat-filter" id="cat-filter">
-      <button class="cat-pill active" onclick="filterCat('all',this)">All</button>
-      <button class="cat-pill" onclick="filterCat('Flower',this)"> Flower</button>
-      <button class="cat-pill" onclick="filterCat('Vegitables',this)"> Vegitables</button>
-      <button class="cat-pill" onclick="filterCat('Furits',this)"> Furits</button>
-      <button class="cat-pill" onclick="filterCat('Freedom Fighter',this)"> Freedom Fighter</button>
-      <button class="cat-pill" onclick="filterCat('Fancy Dress',this)"> Fancy Dress</button>
-      <button class="cat-pill" onclick="filterCat('KrishnaJanam & RamNavami',this)"> KrishnaJanam & RamNavami</button>
-      <button class="cat-pill" onclick="filterCat('Superhero',this)">🦸 Superhero</button>
-      <button class="cat-pill" onclick="filterCat('Princess & Royalty',this)">👸 Princess</button>
-      <button class="cat-pill" onclick="filterCat('Halloween',this)">🎃 Halloween</button>
-      <button class="cat-pill" onclick="filterCat('Fantasy & Magic',this)">🧙 Fantasy</button>
-      <button class="cat-pill" onclick="filterCat('Animals',this)">🐾 Animals</button>
-      <button class="cat-pill" onclick="filterCat('Historical',this)">🏰 Historical</button>
-      <button class="cat-pill" onclick="filterCat('Sci-Fi & Space',this)">🚀 Sci-Fi</button>
-    </div>
+    <div class="cat-filter" id="cat-filter"></div>
 <div class="size-filter" id="size-filter">
   <span class="size-filter-label">👕 Size:</span>
   <button class="size-pill active" onclick="filterSize('all',this,'size-filter')">All</button>
@@ -1217,6 +1202,24 @@ var activeCat = 'all', activeCat2 = 'all', activeSize = 'all', activeSize2 = 'al
 var homeSearch = '', costumesSearch = '';
 var bulkFiles = [];
 var selectedSizes = {};
+// ─── MASTER CATEGORY LIST — Edit ONLY here to add/remove categories ───
+var CATEGORIES = [
+  { name: 'Superhero',               emoji: '🦸' },
+  { name: 'Princess & Royalty',      emoji: '👸' },
+  { name: 'Halloween',               emoji: '🎃' },
+  { name: 'Fantasy & Magic',         emoji: '🧙' },
+  { name: 'Animals',                 emoji: '🐾' },
+  { name: 'Historical',              emoji: '🏰' },
+  { name: 'Sci-Fi & Space',          emoji: '🚀' },
+  { name: 'Flower',                  emoji: '🌸' },
+  { name: 'Vegitables',              emoji: '🥦' },
+  { name: 'Furits',                  emoji: '🍎' },
+  { name: 'Freedom Fighter',         emoji: '🇮🇳' },
+  { name: 'Fancy Dress',             emoji: '🎭' },
+  { name: 'KrishnaJanam & RamNavami',emoji: '🪷' },
+  { name: 'General',                 emoji: '🎭' },
+];
+
 var faqItems = JSON.parse(localStorage.getItem('fck_faq') || 'null') || JSON.parse(localStorage.getItem('fck_faq') || 'null') || [
   { id: 1, q: "How do I book a costume?", a: "Simply browse our costumes, select the size you need and click the Book on WhatsApp button. Our team will confirm availability and rental dates with you." },
   { id: 2, q: "How far in advance should I book?", a: "We recommend booking at least 3-5 days before your event. For peak seasons (Diwali, Halloween, Christmas) book 1-2 weeks in advance." },
@@ -1502,7 +1505,30 @@ function renderGrid(gridId, cat, search){
   });
 }
 
-function getCatEmoji(cat){var m={'Superhero':'🦸','Princess & Royalty':'👸','Halloween':'🎃','Fantasy & Magic':'🧙','Animals':'🐾','Historical':'🏰','Sci-Fi & Space':'🚀','General':'🎭'};return m[cat]||'🎭';}
+function getCatEmoji(cat){var found=CATEGORIES.find(function(c){return c.name===cat;});return found?found.emoji:'🎭';}
+
+// ─── BUILD ALL CATEGORY UI FROM MASTER LIST ───
+function buildCategoryUI() {
+  // 1. Home filter pills
+  var cf = document.getElementById('cat-filter');
+  if(cf) {
+    cf.innerHTML = '<button class="cat-pill active" onclick="filterCat(\'all\',this)">All</button>'
+      + CATEGORIES.map(function(c){
+          var label = c.name.length > 14 ? c.name.split(' ').slice(0,2).join(' ') : c.name;
+          return '<button class="cat-pill" onclick="filterCat(\''+c.name.replace(/'/g,"\\'")+'\',this)">'+c.emoji+' '+label+'</button>';
+        }).join('');
+  }
+
+  // 2. Add/Edit costume modal select
+  document.querySelectorAll('[data-cat-select="true"]').forEach(function(sel) {
+    var isBulk = sel.id === 'bulk-default-cat';
+    var opts = isBulk ? '<option value="">— pick a category —</option>' : '';
+    opts += CATEGORIES.map(function(c){
+      return '<option value="'+c.name+'">'+c.name+'</option>';
+    }).join('');
+    sel.innerHTML = opts;
+  });
+}
 
 // Format price: strip non-numeric, just show number (₹ shown separately in template)
 function formatPrice(p){
@@ -1727,7 +1753,7 @@ function showBulkStep2(){
 function renderBulkGrid(){
   var grid = document.getElementById('bulk-preview-grid');
   grid.innerHTML = '';
-  var cats = ['Superhero','Princess & Royalty','Halloween','Fantasy & Magic','Animals','Historical','Sci-Fi & Space','General'];
+  var cats = CATEGORIES.map(function(c){return c.name;});
   bulkFiles.forEach(function(item, idx){
     var div = document.createElement('div');
     div.className = 'bulk-item';
@@ -2090,6 +2116,7 @@ setTimeout(function(){
   // ── Expose functions globally so HTML onclick attributes work ──
   if(typeof showPage === "function") window.showPage = showPage;
   window.scrollToAnchor = scrollToAnchor;
+  buildCategoryUI();
   if(typeof openModal === "function") window.openModal = openModal;
   if(typeof closeModal === "function") window.closeModal = closeModal;
   if(typeof switchModal === "function") window.switchModal = switchModal;
@@ -2317,7 +2344,7 @@ setTimeout(function(){
     <div class="form-group" style="text-align:left"><label>Username</label><input type="text" id="al-user" placeholder="admin"></div>
     <div class="form-group" style="text-align:left"><label>Password</label><input type="password" id="al-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn-primary" style="width:100%;justify-content:center;margin-top:6px" onclick="doAdminLogin()">Log In as Admin</button>
-    <!-- <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p> -->
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p>
     <div class="modal-switch"><a onclick="switchModal('admin-login-overlay','login-overlay')">← Back to User Login</a></div>
   </div>
 </div>
@@ -2331,11 +2358,7 @@ setTimeout(function(){
     <div class="form-row">
       <div class="form-group"><label>Rental Price (₹/day)</label><input type="text" id="c-price" placeholder="₹299"></div>
       <div class="form-group"><label>Category</label>
-        <select id="c-cat">
-          <option>Superhero</option><option>Princess & Royalty</option><option>Halloween</option>
-          <option>Fantasy & Magic</option><option>Animals</option><option>Historical</option>
-          <option>Sci-Fi & Space</option><option>General</option>
-        </select>
+        <select id="c-cat" data-cat-select="true"></select>
       </div>
     </div>
     <div class="form-group">
@@ -2395,12 +2418,7 @@ setTimeout(function(){
         </div>
         <div>
           <label>Default Category — applies to all</label>
-          <select id="bulk-default-cat" onchange="applyDefaultCat(this.value)">
-            <option value="">— pick a category —</option>
-            <option>Superhero</option><option>Princess &amp; Royalty</option><option>Halloween</option>
-            <option>Fantasy &amp; Magic</option><option>Animals</option><option>Historical</option>
-            <option>Sci-Fi &amp; Space</option><option>General</option>
-          </select>
+          <select id="bulk-default-cat" onchange="applyDefaultCat(this.value)" data-cat-select="true"><option value="">— pick a category —</option></select>
         </div>
       </div>
       <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-weight:700">
