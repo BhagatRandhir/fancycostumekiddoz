@@ -936,12 +936,12 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
     <div class="toc-box">
       <div class="toc-title">📋 On This Page</div>
       <ul class="toc-list">
-        <li><a href="#policy-booking">📦 Booking &amp; Availability <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#policy-pricing">💰 Pricing &amp; Payment <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#policy-delivery">🚚 Delivery &amp; Return <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#policy-care">👗 Care &amp; Condition <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#policy-cancellation">❌ Cancellation Policy <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#policy-safety">👶 Safety &amp; Suitability <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-booking')">📦 Booking &amp; Availability <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-pricing')">💰 Pricing &amp; Payment <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-delivery')">🚚 Delivery &amp; Return <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-care')">👗 Care &amp; Condition <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-cancellation')">❌ Cancellation Policy <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('policy-safety')">👶 Safety &amp; Suitability <span class="toc-arrow">↓</span></a></li>
       </ul>
     </div>
 
@@ -1031,10 +1031,10 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
     <div class="toc-box">
       <div class="toc-title">📏 On This Page</div>
       <ul class="toc-list">
-        <li><a href="#size-measure">📐 How to Measure Your Child <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#size-boys">👦 Boys Size Chart <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#size-girls">👧 Girls Size Chart <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#size-tips">💡 Size Tips <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('size-measure')">📐 How to Measure Your Child <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('size-boys')">👦 Boys Size Chart <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('size-girls')">👧 Girls Size Chart <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('size-tips')">💡 Size Tips <span class="toc-arrow">↓</span></a></li>
       </ul>
     </div>
 
@@ -1117,11 +1117,11 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
     <div class="toc-box">
       <div class="toc-title">❓ On This Page</div>
       <ul class="toc-list">
-        <li><a href="#faq-booking-q">📦 Booking Questions <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#faq-sizing-q">📏 Sizing Questions <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#faq-delivery-q">🚚 Delivery &amp; Return <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#faq-payment-q">💰 Payment &amp; Deposit <span class="toc-arrow">↓</span></a></li>
-        <li><a href="#faq-care-q">👗 Care &amp; Damage <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('faq-booking-q')">📦 Booking Questions <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('faq-sizing-q')">📏 Sizing Questions <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('faq-delivery-q')">🚚 Delivery &amp; Return <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('faq-payment-q')">💰 Payment &amp; Deposit <span class="toc-arrow">↓</span></a></li>
+        <li><a href="javascript:void(0)" onclick="scrollToAnchor('faq-care-q')">👗 Care &amp; Damage <span class="toc-arrow">↓</span></a></li>
       </ul>
     </div>
 
@@ -1229,6 +1229,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ─── NAVIGATION ───
 function showPage(page){
   try {
+  // Clear URL hash without triggering scroll/jump
+  try { history.replaceState(null, '', window.location.pathname); } catch(e) {}
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
   ['home','costumes','about','contact'].forEach(function(id){
     var el = document.getElementById('nav-'+id);
@@ -2073,8 +2075,15 @@ setTimeout(function(){
 
 // On page load, if user-entered price might be missing ₹ we show it from the template — already handled in formatPrice
 
+  // ─── SCROLL TO ANCHOR (no URL hash change) ───
+  function scrollToAnchor(id) {
+    var el = document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
   // ── Expose functions globally so HTML onclick attributes work ──
   if(typeof showPage === "function") window.showPage = showPage;
+  window.scrollToAnchor = scrollToAnchor;
   if(typeof openModal === "function") window.openModal = openModal;
   if(typeof closeModal === "function") window.closeModal = closeModal;
   if(typeof switchModal === "function") window.switchModal = switchModal;
