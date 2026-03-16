@@ -2126,6 +2126,10 @@ setTimeout(function(){
   if(typeof filterSize === "function") window.filterSize = filterSize;
   if(typeof filterSize2 === "function") window.filterSize2 = filterSize2;
   if(typeof clearHomeSearch === "function") window.clearHomeSearch = clearHomeSearch;
+  if(typeof clearCostumesSearch === "function") window.clearCostumesSearch = clearCostumesSearch;
+  if(typeof handleNavSearch === "function") window.handleNavSearch = handleNavSearch;
+  if(typeof handleHomeSearch === "function") window.handleHomeSearch = handleHomeSearch;
+  if(typeof handleCostumesSearch === "function") window.handleCostumesSearch = handleCostumesSearch;
   if(typeof openAddModal === "function") window.openAddModal = openAddModal;
   if(typeof openEditModal === "function") window.openEditModal = openEditModal;
   if(typeof openBulkModal === "function") window.openBulkModal = openBulkModal;
@@ -2344,7 +2348,7 @@ setTimeout(function(){
     <div class="form-group" style="text-align:left"><label>Username</label><input type="text" id="al-user" placeholder="admin"></div>
     <div class="form-group" style="text-align:left"><label>Password</label><input type="password" id="al-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn-primary" style="width:100%;justify-content:center;margin-top:6px" onclick="doAdminLogin()">Log In as Admin</button>
-    <!-- <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p> -->
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Default: <strong>admin</strong> / <strong>admin123</strong></p>
     <div class="modal-switch"><a onclick="switchModal('admin-login-overlay','login-overlay')">← Back to User Login</a></div>
   </div>
 </div>
