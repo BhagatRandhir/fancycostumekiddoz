@@ -953,49 +953,6 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
 
 
   <!-- ═══ ANALYTICS PAGE ═══ -->
-  <div class="page" id="page-analytics">
-    <div class="analytics-page">
-      <div class="analytics-hero">
-        <div class="analytics-hero-inner">
-          <h1>📊 Analytics Dashboard</h1>
-          <p>Live snapshot of your store performance</p>
-        </div>
-      </div>
-      <div class="analytics-grid" id="analytics-stats-grid"></div>
-      <div class="analytics-section">
-        <div class="analytics-section-head">
-          <span style="font-size:20px">🎭</span>
-          <h3>Costumes by Category</h3>
-          <button class="analytics-refresh" onclick="renderAnalytics()">↺ Refresh</button>
-        </div>
-        <div class="analytics-section-body" id="analytics-cat-bars"></div>
-      </div>
-      <div class="analytics-section">
-        <div class="analytics-section-head">
-          <span style="font-size:20px">👗</span>
-          <h3>Costume Inventory</h3>
-        </div>
-        <div class="analytics-section-body" style="overflow-x:auto">
-          <table class="analytics-table">
-            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Sizes</th><th>Status</th></tr></thead>
-            <tbody id="analytics-costumes-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="analytics-section">
-        <div class="analytics-section-head">
-          <span style="font-size:20px">👥</span>
-          <h3>Registered Users</h3>
-        </div>
-        <div class="analytics-section-body" style="overflow-x:auto">
-          <table class="analytics-table">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Registered</th></tr></thead>
-            <tbody id="analytics-users-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
   <section class="section" id="costumes-home">
     <div class="section-header">
       <div class="section-eyebrow">🎭 Our Collection</div>
@@ -1033,6 +990,59 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
   </section>
 
 </div><!-- /page-home -->
+
+  <div class="page" id="page-analytics">
+    <div class="analytics-page">
+      <div class="analytics-hero">
+        <div class="analytics-hero-inner">
+          <h1>📊 Analytics Dashboard</h1>
+          <p>Live snapshot of your store performance</p>
+        </div>
+      </div>
+      <div class="analytics-grid" id="analytics-stats-grid"></div>
+      <div class="analytics-section">
+        <div class="analytics-section-head">
+          <span style="font-size:20px">👁️</span>
+          <h3>Website Visitors</h3>
+          <button class="analytics-refresh" onclick="resetVisitorStats()" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;font-size:10px">🗑 Reset</button>
+          <button class="analytics-refresh" onclick="renderAnalytics()">↺ Refresh</button>
+        </div>
+        <div class="analytics-section-body" id="analytics-visitors-body"></div>
+      </div>
+      <div class="analytics-section">
+        <div class="analytics-section-head">
+          <span style="font-size:20px">🎭</span>
+          <h3>Costumes by Category</h3>
+          <button class="analytics-refresh" onclick="renderAnalytics()">↺ Refresh</button>
+        </div>
+        <div class="analytics-section-body" id="analytics-cat-bars"></div>
+      </div>
+      <div class="analytics-section">
+        <div class="analytics-section-head">
+          <span style="font-size:20px">👗</span>
+          <h3>Costume Inventory</h3>
+        </div>
+        <div class="analytics-section-body" style="overflow-x:auto">
+          <table class="analytics-table">
+            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Sizes</th><th>Status</th></tr></thead>
+            <tbody id="analytics-costumes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="analytics-section">
+        <div class="analytics-section-head">
+          <span style="font-size:20px">👥</span>
+          <h3>Registered Users</h3>
+        </div>
+        <div class="analytics-section-body" style="overflow-x:auto">
+          <table class="analytics-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Registered</th></tr></thead>
+            <tbody id="analytics-users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <!-- ═══ RENTAL POLICY PAGE ═══ -->
 <div class="page" id="page-rental-policy">
@@ -1313,6 +1323,39 @@ footer{background:var(--green);padding:52px 52px 0;display:grid;grid-template-co
 
 <script>
 // ─── GLOBALS (must be outside DOMContentLoaded) ───
+
+// ─── VISITOR TRACKING ───
+(function() {
+  try {
+    var stats = JSON.parse(localStorage.getItem('fck_visit_stats') || '{}');
+    var today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // Total visits (every page load)
+    stats.totalVisits = (stats.totalVisits || 0) + 1;
+
+    // Unique sessions (once per browser session using sessionStorage)
+    if(!sessionStorage.getItem('fck_session_counted')) {
+      stats.uniqueSessions = (stats.uniqueSessions || 0) + 1;
+      sessionStorage.setItem('fck_session_counted', '1');
+    }
+
+    // Daily visits map
+    if(!stats.daily) stats.daily = {};
+    stats.daily[today] = (stats.daily[today] || 0) + 1;
+
+    // Keep only last 30 days
+    var days = Object.keys(stats.daily).sort();
+    if(days.length > 30) {
+      days.slice(0, days.length - 30).forEach(function(d){ delete stats.daily[d]; });
+    }
+
+    // First visit date
+    if(!stats.firstVisit) stats.firstVisit = new Date().toLocaleDateString('en-IN');
+
+    localStorage.setItem('fck_visit_stats', JSON.stringify(stats));
+  } catch(e) {}
+})();
+
 var SHEETS_URL = localStorage.getItem('fck_sheets_url') || '';
 var isAdmin = false;
 var currentUser = JSON.parse(localStorage.getItem('fck_current_user') || 'null');
@@ -1636,6 +1679,48 @@ function renderAnalytics() {
   var allCostumes = (typeof costumes !== 'undefined' && costumes.length) ? costumes : (window.costumes || []);
   var allUsers    = (typeof users    !== 'undefined' && users.length)    ? users    : (window.users    || []);
 
+  // ── Visitor stats ──
+  var vstats = {};
+  try { vstats = JSON.parse(localStorage.getItem('fck_visit_stats') || '{}'); } catch(e) {}
+  var today = new Date().toISOString().slice(0,10);
+  var todayVisits = (vstats.daily && vstats.daily[today]) || 0;
+  var daily = vstats.daily || {};
+  var last7 = Object.keys(daily).sort().slice(-7).reduce(function(s,d){ return s + daily[d]; }, 0);
+
+  var visitorsBody = document.getElementById('analytics-visitors-body');
+  if(visitorsBody) {
+    var dailyKeys = Object.keys(daily).sort().reverse().slice(0, 14);
+    var maxDay = Math.max.apply(null, dailyKeys.map(function(d){ return daily[d]; }).concat([1]));
+    var barsHtml = dailyKeys.length
+      ? dailyKeys.map(function(d) {
+          var pct = Math.round((daily[d]/maxDay)*100);
+          var label = new Date(d + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+          return '<div class="cat-bar-row">'
+            + '<div class="cat-bar-label" style="width:80px;font-size:11px">'+label+'</div>'
+            + '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:'+pct+'%;background:linear-gradient(90deg,#1565c0,#42a5f5)"></div></div>'
+            + '<div class="cat-bar-count">'+daily[d]+'</div></div>';
+        }).join('')
+      : '<div class="empty-analytics">No visit data yet. Visits are counted each time the site loads.</div>';
+
+    visitorsBody.innerHTML =
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px">'
+      + [
+          { icon:'👁️', val: vstats.totalVisits||0,    label:'Total Page Views',  sub:'all time' },
+          { icon:'🙋', val: vstats.uniqueSessions||0,  label:'Unique Sessions',   sub:'browser sessions' },
+          { icon:'📅', val: todayVisits,               label:'Today Visits',   sub: new Date().toLocaleDateString('en-IN') },
+          { icon:'📈', val: last7,                     label:'Last 7 Days',       sub:'page views' },
+          { icon:'🗓️', val: vstats.firstVisit||'—',   label:'Tracking Since',    sub:'first visit recorded' },
+        ].map(function(s){
+          return '<div class="stat-card"><div class="stat-icon">'+s.icon+'</div>'
+            +'<div class="stat-val" style="font-size:28px">'+s.val+'</div>'
+            +'<div class="stat-label">'+s.label+'</div>'
+            +'<div class="stat-sub">'+s.sub+'</div></div>';
+        }).join('')
+      + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Daily Visits (last 14 days)</div>'
+      + barsHtml;
+  }
+
   // ── Stat cards ──
   var available = allCostumes.filter(function(c){ return c.available; }).length;
   var unavailable = allCostumes.length - available;
@@ -1721,6 +1806,13 @@ function closeLightbox(e) {
 document.addEventListener('keydown', function(e) {
   if(e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox-overlay'), currentTarget: document.getElementById('lightbox-overlay')});
 });
+
+
+function resetVisitorStats() {
+  if(!confirm('Reset all visitor statistics? This cannot be undone.')) return;
+  localStorage.removeItem('fck_visit_stats');
+  renderAnalytics();
+}
 
 // ─── BUILD ALL CATEGORY UI FROM MASTER LIST ───
 function buildCategoryUI() {
@@ -2334,6 +2426,7 @@ setTimeout(function(){
   window.openLightbox = openLightbox;
   window.closeLightbox = closeLightbox;
   window.renderAnalytics = renderAnalytics;
+  window.resetVisitorStats = resetVisitorStats;
   buildCategoryUI();
   if(typeof openModal === "function") window.openModal = openModal;
   if(typeof closeModal === "function") window.closeModal = closeModal;
