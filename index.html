@@ -1634,7 +1634,8 @@ function renderGrid(gridId, cat, search){
         c.image?'<img src="'+c.image+'" alt="'+c.name+'" loading="lazy" onclick="openLightbox(\''+c.image+'\',\''+c.name+'\')" style="cursor:zoom-in">'
         :'<div class="costume-img-placeholder"><span class="ph-emoji">'+getCatEmoji(c.category)+'</span><span class="ph-label">No Image</span></div>'
       )+'
-      // <span class="costume-cat-tag">'+c.category+'</span>
+      // <span class="costume-cat-tag">
+      '+c.category+'</span>
       </div>'+
       '<div class="costume-info">'+
         '<div class="costume-name" title="'+c.name+'">'+c.name+'</div>'+
